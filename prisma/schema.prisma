@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String       @id @default(cuid())
+  name           String
+  email          String       @unique
+  password       String
+  role           Role         @default(LEARNER)
+  stellarAddress String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  courses        Course[]
+  enrollments    Enrollment[]
+  certificates   Certificate[]
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  price       Float        @default(0)
+  isPublished Boolean      @default(false)
+  category    String
+  creatorId   String
+  creator     User         @relation(fields: [creatorId], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  lessons     Lesson[]
+  enrollments Enrollment[]
+  certificates Certificate[]
+}
+
+model Lesson {
+  id        String   @id @default(cuid())
+  title     String
+  videoUrl  String
+  order     Int
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Enrollment {
+  id          String    @id @default(cuid())
+  userId      String
+  courseId    String
+  progress    Int       @default(0)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id])
+  course      Course    @relation(fields: [courseId], references: [id])
+}
+
+model Certificate {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  nftId     String?
+  mintedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
+}
+
+enum Role {
+  LEARNER
+  CREATOR
+  ADMIN
+}
